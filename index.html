@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مقرأة الإتقان | حجز جلسات التسميع القرآني</title>
+  
+  <!-- Meta for SEO and Social Sharing -->
+  <meta name="description" content="واجهة حجز مواعيد قرآنية عصرية لتسميع ومراجعة القرآن الكريم، مستوحاة من تصميم Cal.com و Linear.">
+  <meta name="theme-color" content="#10b981">
+  
+  <!-- Favicon with Quran Icon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z'/><path d='M6 6h10'/><path d='M6 10h10'/></svg>">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            emerald: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            zinc: {
+              850: '#1e1e24',
+              900: '#18181b',
+              950: '#09090b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons & Canvas Confetti -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#09090b] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white transition-colors duration-300">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 left-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="w-full border-b border-slate-800/80 dark:border-zinc-800/80 backdrop-blur-md bg-zinc-950/50 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-900/30 text-white">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-lg tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">
+              مقرأة الإتقان
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+              تسميع عن بُعد
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-zinc-400 hidden sm:block">
+            منظومة حجز الجلسات القرآنية الفردية
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Theme Toggle & Settings) -->
+      <div class="flex items-center gap-2">
+        <!-- Theme Toggle -->
+        <button id="btn-toggle-theme" type="button" class="w-10 h-10 rounded-xl border border-slate-700/60 dark:border-zinc-800 bg-slate-900/50 dark:bg-zinc-900/50 hover:bg-slate-800 dark:hover:bg-zinc-800 text-slate-300 flex items-center justify-center transition-all" title="تبديل المظهر">
+          <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="btn-open-settings" type="button" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700/60 dark:border-zinc-800 bg-slate-900/50 dark:bg-zinc-900/50 hover:bg-slate-800 dark:hover:bg-zinc-800 text-slate-300 transition-all text-xs font-semibold" title="إعدادات المعلم والـ Webhook">
+          <i data-lucide="settings" class="w-4 h-4 text-emerald-400"></i>
+          <span class="hidden sm:inline">إعدادات المعلم</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Booking App Container -->
+  <main class="flex-grow flex items-center justify-center p-3 sm:p-6 lg:p-8">
+    <div class="w-full max-w-5xl">
+
+      <!-- STEP 1: Calendar & Time Slots View (Cal.com Inspired) -->
+      <div id="step-1" class="glass-card-dark rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl transition-all">
+        
+        <!-- Left Sidebar: Sheikh / Session Info (35% on desktop) -->
+        <div class="lg:col-span-4 p-6 sm:p-8 border-b lg:border-b-0 lg:border-l border-slate-800 dark:border-zinc-800 bg-slate-950/40 flex flex-col justify-between">
+          <div class="space-y-6">
+            
+            <!-- Sheikh Avatar & Online Status -->
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <img id="profile-avatar" src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80" alt="Sheikh Avatar" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-emerald-500/30 shadow-md">
+                <span class="absolute -bottom-1 -left-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-950 ring-2 ring-emerald-400/40" title="المواعيد متاحة"></span>
+              </div>
+              <div>
+                <h3 id="profile-name" class="font-bold text-base sm:text-lg text-slate-100">فضيلة الشيخ د. عبد الرحمن</h3>
+                <p id="profile-title" class="text-xs text-emerald-400 font-medium">مقرئ بالقراءات العشر</p>
+              </div>
+            </div>
+
+            <!-- Session Title & Description -->
+            <div class="space-y-2">
+              <h1 id="session-title" class="text-xl sm:text-2xl font-black text-slate-100 tracking-tight leading-snug">
+                جلسة تسميع وإتقان القرآن الكريم
+              </h1>
+              <p id="session-desc" class="text-xs text-slate-400 leading-relaxed">
+                جلسة قرآنية فردية (عن بُعد) مخصصة لتسميع الحفظ الجديد، مراجعة وتثبيت المحفوظ، أو تصحيح التلاوة وأحكام التجويد بمتابعة دقيقة.
+              </p>
+            </div>
+
+            <!-- Session Meta Badges -->
+            <div class="space-y-2.5 pt-2">
+              <div class="flex items-center gap-3 text-xs text-slate-300">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <span class="text-slate-400">مدة الجلسة:</span>
+                  <span id="session-duration" class="font-bold text-slate-200 mr-1">20 دقيقة</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 text-xs text-slate-300">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <span class="text-slate-400">المنصة:</span>
+                  <span id="session-platform" class="font-bold text-slate-200 mr-1">Google Meet</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 text-xs text-slate-300">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <span class="text-slate-400">نوع اللقاء:</span>
+                  <span class="font-bold text-slate-200 mr-1">جلسة فردية مباشرة 1:1</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Guidelines Notice -->
+          <div class="mt-8 pt-4 border-t border-slate-800/60 dark:border-zinc-800/60">
+            <div class="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-3.5 text-[11px] text-emerald-300/90 leading-relaxed flex items-start gap-2.5">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <span>يرجى استحضار النية وإتقان المحفوظ قبل بدء الجلسة، والالتزام بالحضور في الموعد المحدد بدقة.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Column: Interactive Calendar (45% on desktop) -->
+        <div class="lg:col-span-5 p-6 sm:p-8 border-b lg:border-b-0 lg:border-l border-slate-800 dark:border-zinc-800">
+          <div class="flex items-center justify-between mb-6">
+            <h2 id="calendar-month-title" class="font-bold text-base sm:text-lg text-slate-100">
+              نوفمبر 2026
+            </h2>
+            <div class="flex items-center gap-1.5">
+              <button id="btn-next-month" type="button" class="w-8 h-8 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition-all" title="الشهر القادم">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-prev-month" type="button" class="w-8 h-8 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition-all" title="الشهر السابق">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Days of Week Header -->
+          <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 dark:text-zinc-500 mb-2">
+            <div>أحد</div>
+            <div>اثنين</div>
+            <div>ثلاثاء</div>
+            <div>أربعاء</div>
+            <div>خميس</div>
+            <div>جمعة</div>
+            <div>سبت</div>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5 justify-items-center">
+            <!-- Populated via JavaScript -->
+          </div>
+
+          <!-- Calendar Legend -->
+          <div class="mt-8 pt-4 border-t border-slate-800/60 dark:border-zinc-800/60 flex items-center justify-center gap-4 text-xs text-slate-400">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span>متاح للحجز</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-zinc-700"></span>
+              <span>غير متاح / مكتمل</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Time Slots List (20% on desktop) -->
+        <div class="lg:col-span-3 p-6 sm:p-8 flex flex-col">
+          <div class="mb-4">
+            <h2 class="font-bold text-sm text-slate-100 flex items-center gap-1.5">
+              <i data-lucide="clock-3" class="w-4 h-4 text-emerald-400"></i>
+              <span id="slots-date-title">المواعيد المتاحة</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">اختر الوقت المناسب لك</p>
+          </div>
+
+          <!-- Slots Scrollable Container -->
+          <div id="slots-container" class="space-y-2 max-h-[380px] overflow-y-auto pr-1 flex-grow">
+            <!-- Dynamic Slots will be injected here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STEP 2: Student Details Booking Form -->
+      <div id="step-2" class="glass-card-dark rounded-3xl p-6 sm:p-10 shadow-2xl hidden animate-fade-scale">
+        
+        <!-- Back Navigation & Header -->
+        <div class="flex items-center justify-between pb-6 border-b border-slate-800 dark:border-zinc-800 mb-8">
+          <button id="btn-back-to-cal" type="button" class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <span>العودة لاختيار موعد آخر</span>
+          </button>
+          
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+            <i data-lucide="calendar-check" class="w-4 h-4"></i>
+            <span id="summary-slot-date">اليوم المحدد</span>
+            <span>•</span>
+            <span id="summary-slot-time">الوقت</span>
+          </div>
+        </div>
+
+        <!-- Form Container -->
+        <form id="booking-form" class="space-y-6 max-w-2xl mx-auto">
+          
+          <div class="text-center mb-8">
+            <h2 class="text-2xl font-black text-slate-100 tracking-tight">بيانات الطالب وتفاصيل التسميع</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">يرجى ملء البيانات بدقة لضمان تحضير الجلسة ومشاركتها معك عبر الواتساب والبريد</p>
+          </div>
+
+          <!-- Grid: Name, Email, Phone -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Full Name -->
+            <div class="sm:col-span-2 space-y-1.5">
+              <label for="form-name" class="block text-xs font-bold text-slate-300">
+                الاسم الثلاثي للطالب / الطالبة <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input type="text" id="form-name" required placeholder="مثال: عبد الله أحمد المنصور" class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 placeholder-slate-500 transition-all">
+                <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3.5"></i>
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="space-y-1.5">
+              <label for="form-email" class="block text-xs font-bold text-slate-300">
+                البريد الإلكتروني <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input type="email" id="form-email" required placeholder="name@example.com" class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 placeholder-slate-500 transition-all font-latin text-left">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3.5"></i>
+              </div>
+            </div>
+
+            <!-- WhatsApp Number -->
+            <div class="space-y-1.5">
+              <label for="form-phone" class="block text-xs font-bold text-slate-300">
+                رقم الواتساب للتذكير ورابط اللقاء <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input type="tel" id="form-phone" required placeholder="+966 50 000 0000" class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 placeholder-slate-500 transition-all font-latin text-left">
+                <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3 top-3.5"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Session Type Selection (Linear Style Radio Cards) -->
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-300">
+              نوع الجلسة المرغوبة <span class="text-rose-500">*</span>
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              
+              <label class="cursor-pointer relative flex flex-col p-3.5 rounded-xl border border-slate-700/60 dark:border-zinc-800 bg-slate-900/40 hover:border-emerald-500/60 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">حفظ جديد</span>
+                  <input type="radio" name="session-type" value="حفظ جديد" checked class="text-emerald-600 focus:ring-emerald-500">
+                </div>
+                <span class="text-[11px] text-slate-400">تسميع مقطع جديد تم حفظه</span>
+              </label>
+
+              <label class="cursor-pointer relative flex flex-col p-3.5 rounded-xl border border-slate-700/60 dark:border-zinc-800 bg-slate-900/40 hover:border-emerald-500/60 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">مراجعة وتثبيت</span>
+                  <input type="radio" name="session-type" value="مراجعة وتثبيت" class="text-emerald-600 focus:ring-emerald-500">
+                </div>
+                <span class="text-[11px] text-slate-400">تثبيت سور أو أجزاء سابقة</span>
+              </label>
+
+              <label class="cursor-pointer relative flex flex-col p-3.5 rounded-xl border border-slate-700/60 dark:border-zinc-800 bg-slate-900/40 hover:border-emerald-500/60 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">تصحيح تلاوة وإتقان</span>
+                  <input type="radio" name="session-type" value="تصحيح تلاوة وإتقان" class="text-emerald-600 focus:ring-emerald-500">
+                </div>
+                <span class="text-[11px] text-slate-400">ضبط مخارج الحروف وأحكام التجويد</span>
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Surah & Riwayah Selection -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Surah Dropdown -->
+            <div class="space-y-1.5">
+              <label for="form-surah" class="block text-xs font-bold text-slate-300">
+                السورة / المقطع المراد تسميعه <span class="text-rose-500">*</span>
+              </label>
+              <select id="form-surah" required class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 transition-all">
+                <!-- Dynamically populated from QURAN_SURAHS -->
+              </select>
+            </div>
+
+            <!-- Riwayah / Reading -->
+            <div class="space-y-1.5">
+              <label for="form-riwayah" class="block text-xs font-bold text-slate-300">
+                الرواية القرآنية
+              </label>
+              <select id="form-riwayah" class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 transition-all">
+                <option value="حفص عن عاصم (طريق الشاطبية)" selected>حفص عن عاصم (طريق الشاطبية)</option>
+                <option value="حفص عن عاصم (طريق طيبة النشر)">حفص عن عاصم (طريق طيبة النشر)</option>
+                <option value="ورش عن نافع (من طريق الأزرق)">ورش عن نافع (من طريق الأزرق)</option>
+                <option value="قالون عن نافع">قالون عن نافع</option>
+                <option value="شعبة عن عاصم">شعبة عن عاصم</option>
+                <option value="الدوري عن أبي عمرو">الدوري عن أبي عمرو</option>
+                <option value="السوسي عن أبي عمرو">السوسي عن أبي عمرو</option>
+                <option value="ابن كثير المكي">ابن كثير المكي</option>
+                <option value="قراءة أخرى">قراءة أخرى (تحدد في الملاحظات)</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Notes / Additional Instructions -->
+          <div class="space-y-1.5">
+            <label for="form-notes" class="block text-xs font-bold text-slate-300">
+              ملاحظات إضافية أو أرقام الآيات المحددة (اختياري)
+            </label>
+            <textarea id="form-notes" rows="2" placeholder="مثال: سأسمع من الآية 1 حتى 50 إن شاء الله..." class="w-full px-4 py-3 rounded-xl bg-slate-900/60 dark:bg-zinc-900/60 border border-slate-700/60 dark:border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 placeholder-slate-500 transition-all"></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-4">
+            <button id="btn-submit-booking" type="submit" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-base shadow-xl shadow-emerald-900/40 hover:shadow-emerald-700/50 transition-all transform active:scale-[0.99] flex items-center justify-center gap-2">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+              <span>تأكيد حجز الموعد الآن</span>
+            </button>
+            <p class="text-[11px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
+              <i data-lucide="lock" class="w-3 h-3 text-emerald-400"></i>
+              <span>الحجز فوري ومؤكد تلقائياً</span>
+            </p>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- STEP 3: Booking Confirmation Receipt View -->
+      <div id="step-3" class="glass-card-dark rounded-3xl p-6 sm:p-12 shadow-2xl hidden animate-fade-scale text-center max-w-2xl mx-auto">
+        
+        <!-- Animated Success Badge -->
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-emerald-400 mb-6 pulse-emerald shadow-lg shadow-emerald-900/50">
+          <i data-lucide="check" class="w-10 h-10 stroke-[3]"></i>
+        </div>
+
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
+          تم تأكيد موعد التسميع بنجاح!
+        </h2>
+        <p class="text-sm text-emerald-400 font-semibold mt-2">
+          بارك الله فيكم وتقبّل منكم، نسأل الله أن يجعله خالصاً لوجهه الكريم
+        </p>
+
+        <!-- Booking Summary Card -->
+        <div class="my-8 p-6 rounded-2xl bg-slate-900/80 dark:bg-zinc-900/80 border border-slate-700/60 dark:border-zinc-800 text-right space-y-3 shadow-inner">
+          
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 dark:border-zinc-800">
+            <span class="text-xs text-slate-400">رقم الحجز:</span>
+            <span id="confirm-booking-id" class="text-xs font-mono font-bold text-emerald-400">QRN-000000</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">اسم الطالب:</span>
+            <span id="confirm-name" class="text-sm font-bold text-slate-200">عبد الله أحمد</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">المقرئ:</span>
+            <span id="confirm-teacher" class="text-sm font-bold text-slate-200">فضيلة الشيخ</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">الموعد المحدد:</span>
+            <span id="confirm-time" class="text-sm font-bold text-emerald-400">2026-11-12 • 05:20 م</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">نوع الجلسة:</span>
+            <span id="confirm-session-type" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold">حفظ جديد</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-xs text-slate-400">السورة والرواية:</span>
+            <span id="confirm-surah" class="text-xs font-bold text-slate-200">سورة البقرة</span>
+          </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Google Calendar Button -->
+            <button id="btn-add-gcal" type="button" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="calendar-plus" class="w-4 h-4 text-emerald-400"></i>
+              <span>إضافة إلى Google Calendar</span>
+            </button>
+
+            <!-- iCalendar (.ics) Download -->
+            <button id="btn-download-ics" type="button" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+              <span>تحميل ملف التقويم (.ics)</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Open Meeting Link -->
+            <a id="btn-open-meeting" href="#" target="_blank" class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition-all">
+              <i data-lucide="video" class="w-4 h-4"></i>
+              <span>رابط اللقاء (Google Meet)</span>
+            </a>
+
+            <!-- Share via WhatsApp -->
+            <a id="btn-share-whatsapp" href="#" target="_blank" class="py-3 px-4 rounded-xl bg-emerald-800/60 hover:bg-emerald-700/60 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span>إرسال تفاصيل للشيخ عبر واتساب</span>
+            </a>
+          </div>
+
+          <!-- New Booking Button -->
+          <div class="pt-4">
+            <button id="btn-new-booking" type="button" class="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-4 transition-colors">
+              حجز موعد تسميع آخر
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full border-t border-slate-800/60 dark:border-zinc-800/60 py-6 text-center text-xs text-slate-400">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="book-marked" class="w-4 h-4 text-emerald-500"></i>
+        <span>مقرأة الإتقان • قال رسول الله ﷺ: «خَيْرُكُمْ مَنْ تَعَلَّمَ القُرْآنَ وَعَلَّمَهُ»</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        واجهة سريعة وخفيفة جاهزة لـ Cloudflare Pages
+      </div>
+    </div>
+  </footer>
+
+  <!-- SETTINGS MODAL / DRAWER (Teacher Configuration) -->
+  <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-scale">
+    <div class="w-full max-w-xl max-h-[90vh] overflow-y-auto glass-card-dark rounded-3xl p-6 sm:p-8 border border-slate-700 shadow-2xl">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800 dark:border-zinc-800 mb-6">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-100">إعدادات المعلم والـ Webhook</h3>
+            <p class="text-[11px] text-slate-400">تُحفظ الإعدادات محلياً في متصفحك دون الحاجة لسيرفر</p>
+          </div>
+        </div>
+        <button id="btn-close-settings" type="button" class="w-8 h-8 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="settings-form" class="space-y-4">
+        
+        <!-- Google Apps Script Webhook URL -->
+        <div class="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5">
+          <label for="set-webhook-url" class="block text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+            <i data-lucide="webhook" class="w-3.5 h-3.5"></i>
+            <span>رابط الـ Webhook (Google Apps Script Web App)</span>
+          </label>
+          <input type="url" id="set-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 rounded-xl bg-slate-900/80 border border-emerald-500/40 text-xs text-slate-100 font-latin text-left placeholder-slate-500 focus:ring-1 focus:ring-emerald-400">
+          <p class="text-[10px] text-emerald-400/80 leading-relaxed">
+            عند وضع رابط Google Apps Script، سيتم إرسال كل حجز جديد تلقائياً لحفظه في Google Sheets وإنشاء موعد في Google Calendar.
+          </p>
+        </div>
+
+        <!-- Teacher Details -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="set-teacher-name" class="block text-xs font-semibold text-slate-300">اسم المقرئ / المعلم</label>
+            <input type="text" id="set-teacher-name" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+          <div class="space-y-1">
+            <label for="set-teacher-title" class="block text-xs font-semibold text-slate-300">اللقب / الصفة</label>
+            <input type="text" id="set-teacher-title" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+        </div>
+
+        <!-- Avatar Image URL -->
+        <div class="space-y-1">
+          <label for="set-teacher-avatar" class="block text-xs font-semibold text-slate-300">رابط صورة المعلم (URL)</label>
+          <input type="url" id="set-teacher-avatar" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100 font-latin text-left">
+        </div>
+
+        <!-- Meeting Link & Platform -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="set-meeting-platform" class="block text-xs font-semibold text-slate-300">المنصة الافتراضية</label>
+            <input type="text" id="set-meeting-platform" value="Google Meet" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+          <div class="space-y-1">
+            <label for="set-meeting-url" class="block text-xs font-semibold text-slate-300">رابط اللقاء (Meeting Link)</label>
+            <input type="url" id="set-meeting-url" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100 font-latin text-left">
+          </div>
+        </div>
+
+        <!-- Session Title & Description -->
+        <div class="space-y-1">
+          <label for="set-session-title" class="block text-xs font-semibold text-slate-300">عنوان الجلسة</label>
+          <input type="text" id="set-session-title" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+        </div>
+
+        <div class="space-y-1">
+          <label for="set-session-desc" class="block text-xs font-semibold text-slate-300">وصف الجلسة وتوجيهات الطالب</label>
+          <textarea id="set-session-desc" rows="2" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100"></textarea>
+        </div>
+
+        <!-- Session Duration -->
+        <div class="space-y-1">
+          <label for="set-session-duration" class="block text-xs font-semibold text-slate-300">مدة الجلسة (بالدقائق)</label>
+          <select id="set-session-duration" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+            <option value="15">15 دقيقة</option>
+            <option value="20" selected>20 دقيقة (الموصى بها للتسميع)</option>
+            <option value="30">30 دقيقة</option>
+            <option value="45">45 دقيقة</option>
+            <option value="60">60 دقيقة</option>
+          </select>
+        </div>
+
+        <!-- Working Days Selection -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold text-slate-300">أيام العمل الأسبوعية المتاحة</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="0" class="text-emerald-500 rounded">
+              <span>الأحد</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="1" class="text-emerald-500 rounded">
+              <span>الاثنين</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="2" class="text-emerald-500 rounded">
+              <span>الثلاثاء</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="3" class="text-emerald-500 rounded">
+              <span>الأربعاء</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="4" class="text-emerald-500 rounded">
+              <span>الخميس</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="5" class="text-emerald-500 rounded">
+              <span>الجمعة</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="work-days" value="6" class="text-emerald-500 rounded">
+              <span>السبت</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Work Hours & Breaks -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="space-y-1">
+            <label for="set-work-start" class="block text-[11px] text-slate-300">بداية العمل</label>
+            <input type="time" id="set-work-start" class="w-full px-2 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+          <div class="space-y-1">
+            <label for="set-work-end" class="block text-[11px] text-slate-300">نهاية العمل</label>
+            <input type="time" id="set-work-end" class="w-full px-2 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+          <div class="space-y-1">
+            <label for="set-break-start" class="block text-[11px] text-slate-300">بداية الاستراحة</label>
+            <input type="time" id="set-break-start" class="w-full px-2 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+          <div class="space-y-1">
+            <label for="set-break-end" class="block text-[11px] text-slate-300">نهاية الاستراحة</label>
+            <input type="time" id="set-break-end" class="w-full px-2 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-100">
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <button id="btn-reset-settings" type="button" class="text-xs text-rose-400 hover:text-rose-300">
+            استعادة الافتراضي
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-md shadow-emerald-900/40">
+              حفظ التعديلات
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
+

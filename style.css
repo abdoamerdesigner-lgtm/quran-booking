@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+
+:root {
+  --font-arabic: 'Tajawal', system-ui, -apple-system, sans-serif;
+  --font-latin: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  
+  --bg-gradient-light: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(248, 250, 252, 1) 70%);
+  --bg-gradient-dark: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, rgba(9, 9, 11, 1) 65%);
+}
+
+* {
+  font-family: var(--font-arabic);
+}
+
+.font-latin {
+  font-family: var(--font-latin);
+}
+
+/* Background Grids & Dots */
+.bg-grid-pattern-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-grid-pattern-light {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Linear Glass Card */
+.glass-card-dark {
+  background: rgba(18, 18, 22, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Linear Glow Border */
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.4), rgba(5, 150, 105, 0.1), rgba(16, 185, 129, 0.4));
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Cal.com Custom Time Slot Button */
+.slot-btn {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slot-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.6);
+}
+
+/* Animations */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-scale {
+  animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.pulse-emerald {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Islamic Geometric Subtle Motif */
+.islamic-badge {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
